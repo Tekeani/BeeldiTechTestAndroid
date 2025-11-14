@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,7 +55,7 @@ fun EquipmentListScreen(
             ) {
                 items(state.equipments) { equipment ->
                     EquipmentCard(
-                        equipment = equipment,
+                        equipmentEntity = equipment,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
@@ -69,7 +68,7 @@ fun EquipmentListScreen(
 
 @Composable
 fun EquipmentCard(
-    equipment: Equipment,
+    equipmentEntity: EquipmentEntity,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -82,22 +81,22 @@ fun EquipmentCard(
                 .padding(16.dp)
         ) {
             Text(
-                text = equipment.name,
+                text = equipmentEntity.name,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "${equipment.brand} - ${equipment.model}",
+                text = "${equipmentEntity.brand} - ${equipmentEntity.model}",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
-                text = "Série: ${equipment.serialNumber}",
+                text = "Série: ${equipmentEntity.serialNumber}",
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
-                text = equipment.location,
+                text = equipmentEntity.location,
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Red,
                 modifier = Modifier.padding(top = 8.dp)

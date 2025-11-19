@@ -25,7 +25,8 @@ class EquipmentDataSource(private val context: Context) {
                     brand = jsonObject.getString("brand"),
                     model = jsonObject.getString("model"),
                     serialNumber = jsonObject.getString("serialNumber"),
-                    location = jsonObject.getString("location")
+                    location = jsonObject.getString("location"),
+                    type = jsonObject.getInt("type")
                 )
                 equipmentEntities.add(equipmentEntity)
             }

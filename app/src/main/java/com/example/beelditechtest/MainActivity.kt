@@ -14,12 +14,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.beelditechtest.ui.theme.BeeldiTechTestTheme
 import com.example.beelditechtest.ui.theme.screenBackground
+import androidx.activity.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : ComponentActivity() {
+    private val viewModel by viewModels<EquipmentListViewModel> {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val dataSource = EquipmentDataSource(this@MainActivity)
+                return EquipmentListViewModel(dataSource) as T
+            }
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val dataSource = EquipmentDataSource(context = this)
-        val viewModel = EquipmentListViewModel(dataSource)
         enableEdgeToEdge()
         setContent {
             BeeldiTechTestTheme {

@@ -29,7 +29,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            BeeldiTechTestTheme {
+            BeeldiTechTestTheme(
+                dynamicColor = false
+            ) {
                 val navController = rememberNavController()
 
                 AppNavGraph(

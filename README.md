@@ -134,3 +134,77 @@ Refactorisation complète de l'application pour adopter une architecture clean a
 - Utilisation de `viewModelScope` pour les coroutines
 - Suspend/Flow au lieu de callbacks
 - Material Design 3 (couleurs du thème)
+
+
+
+
+## Résumé des changements - Session du jour
+
+### Fonctionnalités ajoutées
+
+#### 1. Fiche d'équipement au clic
+- Navigation vers un écran de détail au clic sur une carte d'équipement
+- Création de `EquipmentDetailScreen` avec affichage détaillé des informations
+- Utilisation de Navigation Compose avec passage d'arguments (equipmentId)
+- Création de `EquipmentDetailViewModel` et `EquipmentDetailUiState`
+- Factory `EquipmentDetailViewModelFactory` pour l'injection de dépendances
+
+#### 2. Filtre par UserRole
+- Ajout d'un sélecteur de rôle (`RoleSelector`) dans l'interface utilisateur
+- Implémentation de la logique de filtrage dans `EquipmentListViewModel` :
+  - ADMIN : affiche tous les équipements
+  - MAINTAINER : affiche les équipements de type 0 et 1
+  - AUDITOR : affiche les équipements de type 0
+- Utilisation de `combine` pour combiner plusieurs `StateFlow` (équipements, rôle sélectionné, état de chargement, erreur)
+- Mise à jour de `EquipmentListUiState.Success` pour inclure `selectedRole`
+
+---
+
+### Corrections architecturales
+
+#### 1. DataSource retourne un Flow (consigne)
+- Modification de `EquipmentLocalDataSource.getEquipments()` pour retourner `Flow<List<EquipmentEntity>>` au lieu de `suspend fun`
+- Utilisation de `flow { }` avec `emit()` pour la réactivité
+- Mise à jour de `EquipmentRepository` et `EquipmentRepositoryImpl` pour gérer `Flow<Result<List<Equipment>>>`
+- Mise à jour de `GetEquipmentsUseCase` pour retourner un `Flow`
+- Adaptation de `EquipmentListViewModel` pour utiliser `.collect { }` sur le Flow
+
+#### 2. Corrections de code
+- Correction des imports dans `EquipmentListViewModel` (utilisation de `Equipment` au lieu du chemin complet)
+- Suppression des imports wildcard dans `EquipmentDetailScreen.kt` (remplacement par des imports explicites)
+- Renommage de `GetEquipmentUseCase.kt` → `GetEquipmentsUseCase.kt` (cohérence avec le nom de la classe)
+- Suppression du fichier vide `EquipmentRemoteDataSource.kt`
+- Ajout de l'import manquant `kotlinx.coroutines.flow.collect` dans `EquipmentListViewModel`
+
+#### 3. Gestion des WindowInsets
+- Ajout de `Scaffold` dans `EquipmentListScreen` pour gérer automatiquement les WindowInsets système
+- Application de `paddingValues` à tous les états (Loading, Error, Success)
+- Correction du problème de clics non détectés en haut de l'écran
+
+---
+
+### Mise à jour de l'UI avec le thème Material Design 3
+
+#### 1. Configuration du thème
+- Ajout de `primaryContainer = cardBackground` dans `LightColorScheme` pour définir la couleur orange des cartes
+- Ajout de `onPrimaryContainer` pour la couleur du texte sur fond orange
+- Désactivation de `dynamicColor` dans `MainActivity` pour utiliser le thème personnalisé
+- Ajout de l'import `androidx.compose.ui.graphics.Color` dans `Theme.kt`
+
+#### 2. Application des couleurs aux cartes
+- Modification de `EquipmentCard` pour utiliser `MaterialTheme.colorScheme.primaryContainer` comme couleur de fond
+- Modification de `EquipmentDetailScreen` pour appliquer la même couleur orange à la carte de détail
+- Utilisation de `CardDefaults.cardColors(containerColor = ...)` pour respecter Material Design 3
+- Application de `onPrimaryContainer` pour le texte dans les cartes (meilleur contraste)
+
+---
+
+### Améliorations techniques
+
+- Utilisation de `combine` et `stateIn` pour gérer plusieurs StateFlow dans le ViewModel
+- Utilisation de `SharingStarted.WhileSubscribed(5000)` pour optimiser les performances
+- Gestion des erreurs avec `Result<T>` et `catch` dans les Flows
+- Navigation typée avec `Screen` sealed class
+- Utilisation de `remember(key)` et `LaunchedEffect` pour la récupération d'équipement dans la navigation
+
+---

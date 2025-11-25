@@ -5,9 +5,8 @@ import com.example.beelditechtest.domain.model.Equipment
 import com.example.beelditechtest.presentation.equipment.detail.EquipmentDetailViewModel
 
 class EquipmentDetailViewModelFactory(
-    private val equipment: Equipment
+    private val equipment: Equipment,
 ) : ViewModelProvider.Factory {
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(EquipmentDetailViewModel::class.java)) {

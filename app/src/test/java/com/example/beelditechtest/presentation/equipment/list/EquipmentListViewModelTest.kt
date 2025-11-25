@@ -8,11 +8,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.TestScope
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -23,7 +23,6 @@ import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EquipmentListViewModelTest {
-
     private lateinit var viewModel: EquipmentListViewModel
     private lateinit var getEquipmentsUseCase: GetEquipmentsUseCase
     private val testDispatcher = StandardTestDispatcher()
@@ -43,98 +42,102 @@ class EquipmentListViewModelTest {
     }
 
     @Test
-    fun `loadEquipments should emit Success state with all equipments for ADMIN role`() = testScope.runTest {
-        // Given
-        val equipments = createTestEquipments()
-        whenever(getEquipmentsUseCase()).thenReturn(flowOf(Result.success(equipments)))
+    fun `loadEquipments should emit Success state with all equipments for ADMIN role`() =
+        testScope.runTest {
+            // Given
+            val equipments = createTestEquipments()
+            whenever(getEquipmentsUseCase()).thenReturn(flowOf(Result.success(equipments)))
 
-        viewModel = EquipmentListViewModel(getEquipmentsUseCase)
-        
-        // Attendre que le Flow soit collecté et que l'état soit mis à jour
-        advanceUntilIdle()
+            viewModel = EquipmentListViewModel(getEquipmentsUseCase)
 
-        // When - Attendre que l'état ne soit plus Loading
-        val state = viewModel.state.first { it !is EquipmentListUiState.Loading }
+            // Attendre que le Flow soit collecté et que l'état soit mis à jour
+            advanceUntilIdle()
 
-        // Then
-        assertTrue("State should be Success but was $state", state is EquipmentListUiState.Success)
-        val successState = state as EquipmentListUiState.Success
-        assertEquals(3, successState.equipments.size)
-        assertEquals(UserRole.ADMIN, successState.selectedRole)
-    }
+            // When - Attendre que l'état ne soit plus Loading
+            val state = viewModel.state.first { it !is EquipmentListUiState.Loading }
 
-    @Test
-    fun `selectRole MAINTAINER should filter equipments with type 0 and 1`() = testScope.runTest {
-        // Given
-        val equipments = createTestEquipments()
-        whenever(getEquipmentsUseCase()).thenReturn(flowOf(Result.success(equipments)))
-
-        viewModel = EquipmentListViewModel(getEquipmentsUseCase)
-        advanceUntilIdle()
-        
-        // Attendre que l'état initial soit chargé
-        viewModel.state.first { it !is EquipmentListUiState.Loading }
-
-        // When
-        viewModel.selectRole(UserRole.MAINTAINER)
-        advanceUntilIdle()
-
-        // Then
-        val state = viewModel.state.value
-        assertTrue("State should be Success but was $state", state is EquipmentListUiState.Success)
-        val successState = state as EquipmentListUiState.Success
-        assertEquals(2, successState.equipments.size) // Seulement type 0 et 1
-        assertEquals(UserRole.MAINTAINER, successState.selectedRole)
-        assertTrue(successState.equipments.all { it.type == 0 || it.type == 1 })
-    }
+            // Then
+            assertTrue("State should be Success but was $state", state is EquipmentListUiState.Success)
+            val successState = state as EquipmentListUiState.Success
+            assertEquals(3, successState.equipments.size)
+            assertEquals(UserRole.ADMIN, successState.selectedRole)
+        }
 
     @Test
-    fun `selectRole AUDITOR should filter equipments with type 0 only`() = testScope.runTest {
-        // Given
-        val equipments = createTestEquipments()
-        whenever(getEquipmentsUseCase()).thenReturn(flowOf(Result.success(equipments)))
+    fun `selectRole MAINTAINER should filter equipments with type 0 and 1`() =
+        testScope.runTest {
+            // Given
+            val equipments = createTestEquipments()
+            whenever(getEquipmentsUseCase()).thenReturn(flowOf(Result.success(equipments)))
 
-        viewModel = EquipmentListViewModel(getEquipmentsUseCase)
-        advanceUntilIdle()
-        
-        // Attendre que l'état initial soit chargé
-        viewModel.state.first { it !is EquipmentListUiState.Loading }
+            viewModel = EquipmentListViewModel(getEquipmentsUseCase)
+            advanceUntilIdle()
 
-        // When
-        viewModel.selectRole(UserRole.AUDITOR)
-        advanceUntilIdle()
+            // Attendre que l'état initial soit chargé
+            viewModel.state.first { it !is EquipmentListUiState.Loading }
 
-        // Then
-        val state = viewModel.state.value
-        assertTrue("State should be Success but was $state", state is EquipmentListUiState.Success)
-        val successState = state as EquipmentListUiState.Success
-        assertEquals(1, successState.equipments.size) // Seulement type 0
-        assertEquals(UserRole.AUDITOR, successState.selectedRole)
-        assertTrue(successState.equipments.all { it.type == 0 })
-    }
+            // When
+            viewModel.selectRole(UserRole.MAINTAINER)
+            advanceUntilIdle()
+
+            // Then
+            val state = viewModel.state.value
+            assertTrue("State should be Success but was $state", state is EquipmentListUiState.Success)
+            val successState = state as EquipmentListUiState.Success
+            assertEquals(2, successState.equipments.size) // Seulement type 0 et 1
+            assertEquals(UserRole.MAINTAINER, successState.selectedRole)
+            assertTrue(successState.equipments.all { it.type == 0 || it.type == 1 })
+        }
 
     @Test
-    fun `loadEquipments should emit Error state when use case fails`() = testScope.runTest {
-        // Given
-        val errorMessage = "Erreur de chargement"
-        whenever(getEquipmentsUseCase()).thenReturn(
-            flowOf(Result.failure(Exception(errorMessage)))
-        )
+    fun `selectRole AUDITOR should filter equipments with type 0 only`() =
+        testScope.runTest {
+            // Given
+            val equipments = createTestEquipments()
+            whenever(getEquipmentsUseCase()).thenReturn(flowOf(Result.success(equipments)))
 
-        viewModel = EquipmentListViewModel(getEquipmentsUseCase)
-        advanceUntilIdle()
+            viewModel = EquipmentListViewModel(getEquipmentsUseCase)
+            advanceUntilIdle()
 
-        // When - Attendre que l'état ne soit plus Loading
-        val state = viewModel.state.first { it !is EquipmentListUiState.Loading }
+            // Attendre que l'état initial soit chargé
+            viewModel.state.first { it !is EquipmentListUiState.Loading }
 
-        // Then
-        assertTrue("State should be Error but was $state", state is EquipmentListUiState.Error)
-        val errorState = state as EquipmentListUiState.Error
-        assertEquals(errorMessage, errorState.message)
-    }
+            // When
+            viewModel.selectRole(UserRole.AUDITOR)
+            advanceUntilIdle()
 
-    private fun createTestEquipments(): List<Equipment> {
-        return listOf(
+            // Then
+            val state = viewModel.state.value
+            assertTrue("State should be Success but was $state", state is EquipmentListUiState.Success)
+            val successState = state as EquipmentListUiState.Success
+            assertEquals(1, successState.equipments.size) // Seulement type 0
+            assertEquals(UserRole.AUDITOR, successState.selectedRole)
+            assertTrue(successState.equipments.all { it.type == 0 })
+        }
+
+    @Test
+    fun `loadEquipments should emit Error state when use case fails`() =
+        testScope.runTest {
+            // Given
+            val errorMessage = "Erreur de chargement"
+            whenever(getEquipmentsUseCase()).thenReturn(
+                flowOf(Result.failure(Exception(errorMessage))),
+            )
+
+            viewModel = EquipmentListViewModel(getEquipmentsUseCase)
+            advanceUntilIdle()
+
+            // When - Attendre que l'état ne soit plus Loading
+            val state = viewModel.state.first { it !is EquipmentListUiState.Loading }
+
+            // Then
+            assertTrue("State should be Error but was $state", state is EquipmentListUiState.Error)
+            val errorState = state as EquipmentListUiState.Error
+            assertEquals(errorMessage, errorState.message)
+        }
+
+    private fun createTestEquipments(): List<Equipment> =
+        listOf(
             Equipment(
                 id = "1",
                 name = "Équipement 1",
@@ -142,7 +145,7 @@ class EquipmentListViewModelTest {
                 model = "Model X",
                 serialNumber = "SN001",
                 location = "Location 1",
-                type = 0
+                type = 0,
             ),
             Equipment(
                 id = "2",
@@ -151,7 +154,7 @@ class EquipmentListViewModelTest {
                 model = "Model Y",
                 serialNumber = "SN002",
                 location = "Location 2",
-                type = 1
+                type = 1,
             ),
             Equipment(
                 id = "3",
@@ -160,8 +163,7 @@ class EquipmentListViewModelTest {
                 model = "Model Z",
                 serialNumber = "SN003",
                 location = "Location 3",
-                type = 2
-            )
+                type = 2,
+            ),
         )
-    }
 }

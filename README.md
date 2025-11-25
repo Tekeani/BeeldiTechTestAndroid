@@ -208,3 +208,101 @@ Refactorisation complète de l'application pour adopter une architecture clean a
 - Utilisation de `remember(key)` et `LaunchedEffect` pour la récupération d'équipement dans la navigation
 
 ---
+
+## Ajout de Ktlint et Mockito
+
+### 1. Configuration de Ktlint
+
+#### Ajout du plugin Ktlint
+- Ajout du plugin `org.jlleitschuh.gradle.ktlint` version 14.0.1 dans `gradle/libs.versions.toml`
+- Configuration du plugin dans `build.gradle.kts` (root) et `app/build.gradle.kts`
+- Configuration Ktlint dans `app/build.gradle.kts` :
+  - `android.set(true)` pour le support Android
+  - `ignoreFailures.set(false)` pour échouer le build en cas d'erreurs
+  - Reporter HTML pour visualiser les erreurs
+
+#### Fichier .editorconfig
+- Création d'un fichier `.editorconfig` à la racine du projet pour la configuration du style de code
+- Configuration des règles de formatage Ktlint
+
+#### Commandes Ktlint
+- `./gradlew ktlintCheck` : Vérifier le code sans le modifier
+- `./gradlew ktlintFormat` : Formater automatiquement le code (je ne l'ai personnellement pas fait)
+
+### 3. Ajout de Mockito
+
+#### Dépendances ajoutées
+- `mockito-core` version 5.1.1
+- `mockito-kotlin` version 5.1.0 (pour le support Kotlin)
+- `mockito-inline` version 5.1.1 (pour mocker les classes finales)
+
+#### Configuration dans build.gradle.kts
+- Ajout des dépendances dans le bloc `dependencies` avec `testImplementation`
+- Utilisation de `libs.versions.toml` pour la gestion centralisée des versions
+
+---
+
+### 4. Tests unitaires
+
+#### Configuration des tests
+- Ajout de `kotlinx-coroutines-test` version 1.8.1 pour tester les coroutines
+- Configuration de `Dispatchers.setMain(testDispatcher)` dans `@Before` et `Dispatchers.resetMain()` dans `@After`
+- Utilisation de `StandardTestDispatcher` et `TestScope` pour contrôler l'exécution des coroutines
+
+#### EquipmentListViewModelTest.kt
+
+**Test 1 : Chargement des équipements pour le rôle ADMIN**
+- Vérifie que le ViewModel charge correctement tous les équipements pour le rôle ADMIN
+- Teste l'état `Success` avec la liste complète des équipements
+- Vérifie que le rôle par défaut est `ADMIN`
+
+**Test 2 : Filtrage des équipements pour le rôle MAINTAINER**
+- Vérifie que le filtrage fonctionne correctement pour le rôle MAINTAINER
+- Teste que seuls les équipements de type 0 et 1 sont affichés
+- Vérifie que le rôle sélectionné est bien `MAINTAINER`
+
+**Test 3 : Filtrage des équipements pour le rôle AUDITOR**
+- Vérifie que le filtrage fonctionne correctement pour le rôle AUDITOR
+- Teste que seuls les équipements de type 0 sont affichés
+- Vérifie que le rôle sélectionné est bien `AUDITOR`
+
+**Test 4 : Gestion des erreurs**
+- Vérifie que le ViewModel gère correctement les erreurs du use case
+- Teste l'état `Error` avec le message d'erreur approprié
+
+#### EquipmentDetailViewModelTest.kt
+
+**Test : Initialisation avec les données de l'équipement**
+- Vérifie que le ViewModel s'initialise correctement avec un équipement
+- Teste que l'état émis est `Success` avec l'équipement fourni
+- Vérifie que toutes les propriétés de l'équipement sont correctement exposées (id, name, brand, model, serialNumber, location, type)
+
+---
+
+### 5. Améliorations apportées par les tests
+
+#### Gestion des coroutines dans les tests
+- Utilisation de `testScope.runTest` pour exécuter les tests dans un contexte contrôlé
+- Utilisation de `advanceUntilIdle()` pour s'assurer que toutes les coroutines sont terminées
+- Utilisation de `viewModel.state.first { ... }` pour attendre les mises à jour du StateFlow
+
+#### Mocking des dépendances
+- Utilisation de Mockito pour mocker `GetEquipmentsUseCase`
+- Utilisation de `flowOf(Result.success(...))` pour simuler les réponses du use case
+- Utilisation de `flowOf(Result.failure(...))` pour simuler les erreurs
+
+#### Couverture de tests
+- Tests couvrant les cas de succès et d'erreur
+- Tests couvrant tous les rôles utilisateur (ADMIN, MAINTAINER, AUDITOR)
+- Tests vérifiant la logique de filtrage par type d'équipement
+- Tests vérifiant l'initialisation et l'exposition des données dans les ViewModels
+
+---
+
+### Résumé des outils ajoutés
+
+- **Ktlint** : Outil de formatage et de linting pour maintenir un code cohérent et lisible
+- **Mockito** : Framework de mocking pour isoler les unités de code lors des tests
+- **kotlinx-coroutines-test** : Bibliothèque pour tester les coroutines de manière fiable et prévisible
+
+Ces outils permettent d'améliorer la qualité du code, de maintenir un style cohérent et d'assurer la fiabilité de l'application grâce à des tests unitaires complets.

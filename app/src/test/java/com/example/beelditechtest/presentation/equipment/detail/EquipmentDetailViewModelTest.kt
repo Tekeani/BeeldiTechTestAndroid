@@ -6,19 +6,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EquipmentDetailViewModelTest {
-
     @Test
     fun `should initialize with equipment data and emit Success state`() {
         // Given
-        val equipment = Equipment(
-            id = "1",
-            name = "Équipement Test",
-            brand = "Brand A",
-            model = "Model X",
-            serialNumber = "SN001",
-            location = "Location 1",
-            type = 0
-        )
+        val equipment =
+            Equipment(
+                id = "1",
+                name = "Équipement Test",
+                brand = "Brand A",
+                model = "Model X",
+                serialNumber = "SN001",
+                location = "Location 1",
+                type = 0,
+            )
 
         // When
         val viewModel = EquipmentDetailViewModel(equipment)
@@ -36,4 +36,3 @@ class EquipmentDetailViewModelTest {
         assertEquals(0, successState.equipment.type)
     }
 }
-

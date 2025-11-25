@@ -8,17 +8,15 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
 class EquipmentRepositoryImpl(
-    private val localDataSource: EquipmentLocalDataSource
+    private val localDataSource: EquipmentLocalDataSource,
 ) : EquipmentRepository {
-
-    override fun getEquipments(): Flow<Result<List<Equipment>>> {
-        return localDataSource.getEquipments()
+    override fun getEquipments(): Flow<Result<List<Equipment>>> =
+        localDataSource
+            .getEquipments()
             .map { entities ->
                 val equipments = EquipmentMapper.toDomainList(entities)
                 Result.success(equipments)
-            }
-            .catch { e ->
+            }.catch { e ->
                 emit(Result.failure(e))
             }
-    }
 }

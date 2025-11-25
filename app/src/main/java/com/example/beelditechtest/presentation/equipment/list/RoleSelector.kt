@@ -18,34 +18,37 @@ import com.example.beelditechtest.domain.model.UserRole
 fun RoleSelector(
     selectedRole: UserRole,
     onRoleSelected: (UserRole) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         UserRole.values().forEach { role ->
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 RadioButton(
                     selected = selectedRole == role,
                     onClick = { onRoleSelected(role) },
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary
-                    )
+                    colors =
+                        RadioButtonDefaults.colors(
+                            selectedColor = MaterialTheme.colorScheme.primary,
+                        ),
                 )
                 Text(
                     text = role.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .clickable { onRoleSelected(role) }
-                        .padding(start = 4.dp)
-                        .padding(vertical = 4.dp)
+                    modifier =
+                        Modifier
+                            .clickable { onRoleSelected(role) }
+                            .padding(start = 4.dp)
+                            .padding(vertical = 4.dp),
                 )
             }
         }

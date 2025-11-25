@@ -6,19 +6,11 @@ import com.example.beelditechtest.domain.repository.EquipmentRepository
 import com.example.beelditechtest.domain.usecase.GetEquipmentsUseCase
 
 object AppModule {
-    fun provideEquipmentLocalDataSource(context: Context): EquipmentLocalDataSource {
-        return EquipmentLocalDataSource(context)
-    }
+    fun provideEquipmentLocalDataSource(context: Context): EquipmentLocalDataSource = EquipmentLocalDataSource(context)
 
-    fun provideEquipmentRepository(
-        localDataSource: EquipmentLocalDataSource
-    ): EquipmentRepository {
-        return EquipmentRepositoryImpl(localDataSource)
-    }
+    fun provideEquipmentRepository(localDataSource: EquipmentLocalDataSource): EquipmentRepository =
+        EquipmentRepositoryImpl(localDataSource)
 
-    fun provideGetEquipmentsUseCase(
-        repository: EquipmentRepository
-    ): GetEquipmentsUseCase {
-        return GetEquipmentsUseCase(repository)
-    }
+    fun provideGetEquipmentsUseCase(repository: EquipmentRepository): GetEquipmentsUseCase =
+        GetEquipmentsUseCase(repository)
 }

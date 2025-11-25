@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -12,18 +13,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.unit.dp
 import com.example.beelditechtest.domain.model.Equipment
 import com.example.beelditechtest.domain.model.UserRole
 
 @Composable
-fun EquipmentListLoading(
-    modifier: Modifier = Modifier
-) {
+fun EquipmentListLoading(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
     }
@@ -32,15 +30,15 @@ fun EquipmentListLoading(
 @Composable
 fun EquipmentListError(
     message: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "Erreur: $message",
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
         )
     }
 }
@@ -51,29 +49,31 @@ fun EquipmentListContent(
     selectedRole: UserRole,
     onRoleSelected: (UserRole) -> Unit,
     onEquipmentClick: (Equipment) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) {
         RoleSelector(
             selectedRole = selectedRole,
             onRoleSelected = onRoleSelected,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
         ) {
             items(equipments) { equipment ->
                 EquipmentCard(
                     equipment = equipment,
                     onClick = { onEquipmentClick(equipment) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                 )
             }
         }
@@ -86,21 +86,21 @@ fun EquipmentListScreen(
     onRetry: () -> Unit = {},
     onRoleSelected: (UserRole) -> Unit = {},
     onEquipmentClick: (Equipment) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
-        modifier = modifier
+        modifier = modifier,
     ) { paddingValues ->
         when (val currentState = uiState) {
             is EquipmentListUiState.Loading -> {
                 EquipmentListLoading(
-                    modifier = Modifier.padding(paddingValues)
+                    modifier = Modifier.padding(paddingValues),
                 )
             }
             is EquipmentListUiState.Error -> {
                 EquipmentListError(
                     message = currentState.message,
-                    modifier = Modifier.padding(paddingValues)
+                    modifier = Modifier.padding(paddingValues),
                 )
             }
             is EquipmentListUiState.Success -> {
@@ -109,7 +109,7 @@ fun EquipmentListScreen(
                     selectedRole = currentState.selectedRole,
                     onRoleSelected = onRoleSelected,
                     onEquipmentClick = onEquipmentClick,
-                    modifier = Modifier.padding(paddingValues)
+                    modifier = Modifier.padding(paddingValues),
                 )
             }
         }

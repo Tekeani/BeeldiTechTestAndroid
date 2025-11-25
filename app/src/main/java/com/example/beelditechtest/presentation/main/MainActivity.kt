@@ -4,16 +4,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.navigation.compose.rememberNavController
 import com.example.beelditechtest.di.AppModule
+import com.example.beelditechtest.di.EquipmentDetailViewModelFactory
 import com.example.beelditechtest.di.EquipmentViewModelFactory
 import com.example.beelditechtest.presentation.equipment.list.EquipmentListViewModel
 import com.example.beelditechtest.presentation.navigation.AppNavGraph
 import com.example.beelditechtest.presentation.theme.BeeldiTechTestTheme
-import androidx.navigation.compose.rememberNavController
-import com.example.beelditechtest.di.EquipmentDetailViewModelFactory
 
 class MainActivity : ComponentActivity() {
-
     private val viewModel by viewModels<EquipmentListViewModel> {
         // Création de la chaîne de dépendances via AppModule
         val dataSource = AppModule.provideEquipmentLocalDataSource(this@MainActivity)
@@ -30,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BeeldiTechTestTheme(
-                dynamicColor = false
+                dynamicColor = false,
             ) {
                 val navController = rememberNavController()
 
@@ -39,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     equipmentListViewModel = viewModel,
                     equipmentDetailViewModelFactory = { equipment ->
                         EquipmentDetailViewModelFactory(equipment)
-                    }
+                    },
                 )
             }
         }

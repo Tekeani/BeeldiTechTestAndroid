@@ -35,3 +35,274 @@ Fiche équipement :
 Pour ce test technique, nous vous invitions à respecter les bonnes pratiques recommandées par la documentation Android.
 
 Si vous avez des questions concernant ce test technique, vous pouvez nous les poser à cette adresse : arthur.mercier@beeldi.com
+
+
+
+## Bugs corrigés
+
+- AGP incompatible : la version 8.13.1 déclarée dans `gradle/libs.versions.toml` empêchait la synchronisation. Remplacée par 8.6.0 comme demandé.
+- DSL `compileSdk` invalide : usage de `compileSdk { version = release(36) }` non supporté. Corrigé en utilisant la syntaxe standard `compileSdk = 34`.
+- Incohérence de modèle : `EquipmentEntity` nécessitait `type: Int` mais `EquipmentDataSource` ne passait pas l’argument. Ajout de la lecture du champ `type`.
+- Types JSON incompatibles : `type` stocké comme chaîne dans `equipments.json` provoquait un crash. Passé en entier.
+- Entrée JSON incomplète : l’équipement `id = 5` n’avait pas de `name`, ce qui faisait échouer le parsing. Champ ajouté.
+- `EquipmentDataSource` lisait les fichiers sur `Dispatchers.Main` sans dépendance `kotlinx-coroutines-android`. Passage sur `Dispatchers.IO` et ajout de la dépendance.
+- ViewModel non initialisable : `EquipmentListViewModel` n’acceptait pas le `EquipmentDataSource` alors que `MainActivity` essayait de lui passer. Constructeur mis à jour + factory `viewModels`.
+- État non exposé : absence de propriété publique pour l’UI (`state`). Ajout de `val state: StateFlow<EquipmentListState>` et implémentation de `loadEquipments()` avec `viewModelScope`.
+- Propriété UI erronée : `EquipmentListScreen` utilisait `state.equipments` au lieu de `state.equipmentEntities`. Aligné et import `items` ajouté.
+- Fonction `items` non importée : `androidx.compose.foundation.lazy.items` manquait, causant des références rouges. Import ajouté.
+- `enableEdgeToEdge()` non résolu : ajout de la dépendance `androidx.activity:activity-ktx` pour rétablir la fonction.
+
+
+
+## Refonte Clean Architecture MVVM
+
+### Objectif
+
+Refactorisation complète de l'application pour adopter une architecture clean avec le pattern MVVM, respectant les bonnes pratiques Android et améliorant la maintenabilité, testabilité et scalabilité du code.
+
+### Architecture mise en place
+
+#### Structure en 3 couches
+
+- **Domain Layer** : Logique métier pure (indépendante d'Android)
+  - Modèles de domaine (`Equipment`, `UserRole`)
+  - Interfaces Repository
+  - Use Cases (cas d'usage métier)
+
+- **Data Layer** : Gestion des données
+  - Implémentations des repositories
+  - Sources de données (local/remote)
+  - Modèles de données (DTO)
+  - Mappers (conversion Data ↔ Domain)
+
+- **Presentation Layer** : Interface utilisateur
+  - UI (Jetpack Compose)
+  - ViewModels
+  - États UI (sealed classes)
+  - Composables réutilisables
+
+### Changements principaux
+
+#### Architecture
+- Séparation en 3 couches (Domain, Data, Presentation)
+- Un fichier = une classe/composant/fonction
+- Flux de données unidirectionnel
+- Séparation claire des responsabilités
+
+#### Domain Layer
+- Création de `Equipment` (modèle de domaine)
+- Création de `EquipmentRepository` (interface)
+- Création de `GetEquipmentsUseCase` (use case)
+- Migration de `UserRole` vers le domain layer
+
+#### Data Layer
+- Création de `EquipmentEntity` (modèle de données)
+- Migration `EquipmentDataSource` → `EquipmentLocalDataSource`
+- Création de `EquipmentRepositoryImpl` (implémentation)
+- Création de `EquipmentMapper` (conversion Data ↔ Domain)
+- Utilisation de `buildList` pour l'immutabilité
+
+#### Presentation Layer
+- Migration de `MainActivity` vers `presentation/main/`
+- Création de `EquipmentListUiState` (sealed class)
+- Refactorisation du ViewModel pour utiliser les Use Cases
+- Décomposition de l'écran en composables réutilisables :
+  - `EquipmentListLoading`
+  - `EquipmentListError`
+  - `EquipmentListContent`
+- Le composable reçoit l'UiState au lieu du ViewModel
+
+#### Injection de dépendances
+- Création de `AppModule` (construction des dépendances)
+- Création de `EquipmentViewModelFactory` (injection dans ViewModel)
+- Simplification de `MainActivity`
+
+#### Gestion des états
+- Remplacement par `sealed class` pour `EquipmentListUiState`
+- États : `Loading`, `Success`, `Error`
+- Utilisation de `StateFlow` au lieu de `LiveData`
+- Utilisation de `asStateFlow()` pour l'immutabilité
+- Utilisation de `update()` pour les mutations (thread-safe)
+
+### Bonnes pratiques appliquées
+
+- StateFlow au lieu de LiveData
+- Flux de données unidirectionnel
+- Immutabilité des états
+- Pas de logique métier dans les composables
+- Composables décomposés et réutilisables
+- Utilisation de `viewModelScope` pour les coroutines
+- Suspend/Flow au lieu de callbacks
+- Material Design 3 (couleurs du thème)
+
+
+
+
+## Résumé des changements - Session du jour
+
+### Fonctionnalités ajoutées
+
+#### 1. Fiche d'équipement au clic
+- Navigation vers un écran de détail au clic sur une carte d'équipement
+- Création de `EquipmentDetailScreen` avec affichage détaillé des informations
+- Utilisation de Navigation Compose avec passage d'arguments (equipmentId)
+- Création de `EquipmentDetailViewModel` et `EquipmentDetailUiState`
+- Factory `EquipmentDetailViewModelFactory` pour l'injection de dépendances
+
+#### 2. Filtre par UserRole
+- Ajout d'un sélecteur de rôle (`RoleSelector`) dans l'interface utilisateur
+- Implémentation de la logique de filtrage dans `EquipmentListViewModel` :
+  - ADMIN : affiche tous les équipements
+  - MAINTAINER : affiche les équipements de type 0 et 1
+  - AUDITOR : affiche les équipements de type 0
+- Utilisation de `combine` pour combiner plusieurs `StateFlow` (équipements, rôle sélectionné, état de chargement, erreur)
+- Mise à jour de `EquipmentListUiState.Success` pour inclure `selectedRole`
+
+---
+
+### Corrections architecturales
+
+#### 1. DataSource retourne un Flow (consigne)
+- Modification de `EquipmentLocalDataSource.getEquipments()` pour retourner `Flow<List<EquipmentEntity>>` au lieu de `suspend fun`
+- Utilisation de `flow { }` avec `emit()` pour la réactivité
+- Mise à jour de `EquipmentRepository` et `EquipmentRepositoryImpl` pour gérer `Flow<Result<List<Equipment>>>`
+- Mise à jour de `GetEquipmentsUseCase` pour retourner un `Flow`
+- Adaptation de `EquipmentListViewModel` pour utiliser `.collect { }` sur le Flow
+
+#### 2. Corrections de code
+- Correction des imports dans `EquipmentListViewModel` (utilisation de `Equipment` au lieu du chemin complet)
+- Suppression des imports wildcard dans `EquipmentDetailScreen.kt` (remplacement par des imports explicites)
+- Renommage de `GetEquipmentUseCase.kt` → `GetEquipmentsUseCase.kt` (cohérence avec le nom de la classe)
+- Suppression du fichier vide `EquipmentRemoteDataSource.kt`
+- Ajout de l'import manquant `kotlinx.coroutines.flow.collect` dans `EquipmentListViewModel`
+
+#### 3. Gestion des WindowInsets
+- Ajout de `Scaffold` dans `EquipmentListScreen` pour gérer automatiquement les WindowInsets système
+- Application de `paddingValues` à tous les états (Loading, Error, Success)
+- Correction du problème de clics non détectés en haut de l'écran
+
+---
+
+### Mise à jour de l'UI avec le thème Material Design 3
+
+#### 1. Configuration du thème
+- Ajout de `primaryContainer = cardBackground` dans `LightColorScheme` pour définir la couleur orange des cartes
+- Ajout de `onPrimaryContainer` pour la couleur du texte sur fond orange
+- Désactivation de `dynamicColor` dans `MainActivity` pour utiliser le thème personnalisé
+- Ajout de l'import `androidx.compose.ui.graphics.Color` dans `Theme.kt`
+
+#### 2. Application des couleurs aux cartes
+- Modification de `EquipmentCard` pour utiliser `MaterialTheme.colorScheme.primaryContainer` comme couleur de fond
+- Modification de `EquipmentDetailScreen` pour appliquer la même couleur orange à la carte de détail
+- Utilisation de `CardDefaults.cardColors(containerColor = ...)` pour respecter Material Design 3
+- Application de `onPrimaryContainer` pour le texte dans les cartes (meilleur contraste)
+
+---
+
+### Améliorations techniques
+
+- Utilisation de `combine` et `stateIn` pour gérer plusieurs StateFlow dans le ViewModel
+- Utilisation de `SharingStarted.WhileSubscribed(5000)` pour optimiser les performances
+- Gestion des erreurs avec `Result<T>` et `catch` dans les Flows
+- Navigation typée avec `Screen` sealed class
+- Utilisation de `remember(key)` et `LaunchedEffect` pour la récupération d'équipement dans la navigation
+
+---
+
+## Ajout de Ktlint et Mockito
+
+### 1. Configuration de Ktlint
+
+#### Ajout du plugin Ktlint
+- Ajout du plugin `org.jlleitschuh.gradle.ktlint` version 14.0.1 dans `gradle/libs.versions.toml`
+- Configuration du plugin dans `build.gradle.kts` (root) et `app/build.gradle.kts`
+- Configuration Ktlint dans `app/build.gradle.kts` :
+  - `android.set(true)` pour le support Android
+  - `ignoreFailures.set(false)` pour échouer le build en cas d'erreurs
+  - Reporter HTML pour visualiser les erreurs
+
+#### Fichier .editorconfig
+- Création d'un fichier `.editorconfig` à la racine du projet pour la configuration du style de code
+- Configuration des règles de formatage Ktlint
+
+#### Commandes Ktlint
+- `./gradlew ktlintCheck` : Vérifier le code sans le modifier
+- `./gradlew ktlintFormat` : Formater automatiquement le code (je ne l'ai personnellement pas fait)
+
+### 3. Ajout de Mockito
+
+#### Dépendances ajoutées
+- `mockito-core` version 5.1.1
+- `mockito-kotlin` version 5.1.0 (pour le support Kotlin)
+- `mockito-inline` version 5.1.1 (pour mocker les classes finales)
+
+#### Configuration dans build.gradle.kts
+- Ajout des dépendances dans le bloc `dependencies` avec `testImplementation`
+- Utilisation de `libs.versions.toml` pour la gestion centralisée des versions
+
+---
+
+### 4. Tests unitaires
+
+#### Configuration des tests
+- Ajout de `kotlinx-coroutines-test` version 1.8.1 pour tester les coroutines
+- Configuration de `Dispatchers.setMain(testDispatcher)` dans `@Before` et `Dispatchers.resetMain()` dans `@After`
+- Utilisation de `StandardTestDispatcher` et `TestScope` pour contrôler l'exécution des coroutines
+
+#### EquipmentListViewModelTest.kt
+
+**Test 1 : Chargement des équipements pour le rôle ADMIN**
+- Vérifie que le ViewModel charge correctement tous les équipements pour le rôle ADMIN
+- Teste l'état `Success` avec la liste complète des équipements
+- Vérifie que le rôle par défaut est `ADMIN`
+
+**Test 2 : Filtrage des équipements pour le rôle MAINTAINER**
+- Vérifie que le filtrage fonctionne correctement pour le rôle MAINTAINER
+- Teste que seuls les équipements de type 0 et 1 sont affichés
+- Vérifie que le rôle sélectionné est bien `MAINTAINER`
+
+**Test 3 : Filtrage des équipements pour le rôle AUDITOR**
+- Vérifie que le filtrage fonctionne correctement pour le rôle AUDITOR
+- Teste que seuls les équipements de type 0 sont affichés
+- Vérifie que le rôle sélectionné est bien `AUDITOR`
+
+**Test 4 : Gestion des erreurs**
+- Vérifie que le ViewModel gère correctement les erreurs du use case
+- Teste l'état `Error` avec le message d'erreur approprié
+
+#### EquipmentDetailViewModelTest.kt
+
+**Test : Initialisation avec les données de l'équipement**
+- Vérifie que le ViewModel s'initialise correctement avec un équipement
+- Teste que l'état émis est `Success` avec l'équipement fourni
+- Vérifie que toutes les propriétés de l'équipement sont correctement exposées (id, name, brand, model, serialNumber, location, type)
+
+---
+
+### 5. Améliorations apportées par les tests
+
+#### Gestion des coroutines dans les tests
+- Utilisation de `testScope.runTest` pour exécuter les tests dans un contexte contrôlé
+- Utilisation de `advanceUntilIdle()` pour s'assurer que toutes les coroutines sont terminées
+- Utilisation de `viewModel.state.first { ... }` pour attendre les mises à jour du StateFlow
+
+#### Mocking des dépendances
+- Utilisation de Mockito pour mocker `GetEquipmentsUseCase`
+- Utilisation de `flowOf(Result.success(...))` pour simuler les réponses du use case
+- Utilisation de `flowOf(Result.failure(...))` pour simuler les erreurs
+
+#### Couverture de tests
+- Tests couvrant les cas de succès et d'erreur
+- Tests couvrant tous les rôles utilisateur (ADMIN, MAINTAINER, AUDITOR)
+- Tests vérifiant la logique de filtrage par type d'équipement
+- Tests vérifiant l'initialisation et l'exposition des données dans les ViewModels
+
+---
+
+### Résumé des outils ajoutés
+
+- **Ktlint** : Outil de formatage et de linting pour maintenir un code cohérent et lisible
+- **Mockito** : Framework de mocking pour isoler les unités de code lors des tests
+- **kotlinx-coroutines-test** : Bibliothèque pour tester les coroutines de manière fiable et prévisible
+
+Ces outils permettent d'améliorer la qualité du code, de maintenir un style cohérent et d'assurer la fiabilité de l'application grâce à des tests unitaires complets.

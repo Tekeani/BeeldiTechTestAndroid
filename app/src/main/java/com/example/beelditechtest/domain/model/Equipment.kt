@@ -1,6 +1,6 @@
-package com.example.beelditechtest
+package com.example.beelditechtest.domain.model
 
-data class EquipmentEntity(
+data class Equipment(
     val id: String,
     val name: String,
     val brand: String,

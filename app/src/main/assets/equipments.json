@@ -6,7 +6,7 @@
     "model": "VRV-4",
     "serialNumber": "DAI-2023-001",
     "location": "Bâtiment A - Étage 2",
-    "type": "0"
+    "type": 0
   },
   {
     "id": "2",
@@ -15,7 +15,7 @@
     "model": "Gen2",
     "serialNumber": "OTI-2022-045",
     "location": "Bâtiment B - Étage 1",
-    "type": "0"
+    "type": 0
   },
   {
     "id": "3",
@@ -24,7 +24,7 @@
     "model": "Vitodens 200-W",
     "serialNumber": "VIE-2023-123",
     "location": "Bâtiment A - Sous-sol",
-    "type": "1"
+    "type": 1
   },
   {
     "id": "4",
@@ -33,14 +33,15 @@
     "model": "VMC Simple Flux",
     "serialNumber": "ALD-2021-078",
     "location": "Bâtiment C - Étage 3",
-    "type": "1"
+    "type": 1
   },
   {
     "id": "5",
+    "name" : "Porte",
     "brand": "Dorma",
     "model": "TSA 160",
     "serialNumber": "DOR-2022-234",
     "location": "Bâtiment B - Rez-de-chaussée",
-    "type": "2"
+    "type": 2
   }
 ]

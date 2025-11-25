@@ -1,4 +1,4 @@
-package com.example.beelditechtest.ui.theme
+package com.example.beelditechtest.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
